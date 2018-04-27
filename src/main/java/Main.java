@@ -12,9 +12,12 @@ public class Main {
     initEnvironment();
     Logger logger = Logger.getLogger(Main.class.getName());
     LoggingFeature feature = new LoggingFeature(logger, Level.INFO, null, null);
-    Javalin app = Javalin.create().port(PORT).enableStaticFiles("/public");
+    Javalin app = Javalin.create()
+      .port(PORT)
+      .enableStaticFiles("/public")
+      .get("/test", (req, res) -> res.body("tests"));
   }
-  
+
   private static void initEnvironment() {
     ProcessBuilder processBuilder = new ProcessBuilder();
     if (processBuilder.environment().get("PORT") != null) {
