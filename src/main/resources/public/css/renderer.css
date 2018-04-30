@@ -1,0 +1,14 @@
+@font-face {
+  font-family: 'SinglePoint';
+  src: url('SinglePoint.woff2') format('woff2'), url('SinglePoint.woff') format('woff'), url('SinglePoint.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'UnitFont';
+  src: url('UnitFont.woff2') format('woff2'), url('UnitFont.woff') format('woff'), url('UnitFont.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'TacticalGraphics';
+  src: url('TacticalGraphics.woff2') format('woff2'), url('TacticalGraphics.woff') format('woff'), url('TacticalGraphics.ttf') format('truetype');
+}

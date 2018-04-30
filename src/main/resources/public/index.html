@@ -3,14 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <title>Quickdraw Visualizer</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/w3.css">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/renderer.css">
 </head>
 <body>
   <div id="wrapper">
     <canvas id="canvas" resize></canvas>
+    <button id="clear" onclick="clearDrawing();">&#x2717;</button>
+    <button id="accept" onclick="postDrawing();">&#x2705;</button>
   </div>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p id="instructions">Draw an Infantry Unit</p>
+      <span id="unit"></span>
+    </div>
+  </div>
+  <script src="milsym/sv-c.js"></script>
   <script src='js/paper-0.9.25.min.js'></script>
   <script src="js/drawing.js"></script>
 </body>

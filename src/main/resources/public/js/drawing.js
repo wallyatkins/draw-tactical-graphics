@@ -4,11 +4,37 @@ var path, ink, scores;
 var timer = 0, lastTimestamp = 0, lastTimestamp_check = 0, idx_guess = 0;
 var d_scores = {};
 
+var index = 0;
+
+// Unit icon information
+var fontInfo = this.getFontInfo("Arial",10,"bold");
+var modifiers = {"SIZE":100};
+var iconsToDraw = [
+  {'type': 'Infantry Unit', 'code': 'SFGPUCI--------'},
+  {'type': 'Engineering Unit', 'code': 'SFGPUCE--------'},
+  {'type': 'Field Artillery Unit', 'code': 'SFGPUCF--------'},
+  {'type': 'Reconnaissance Unit', 'code': 'SFGPUCR--------'},
+  {'type': 'CBRN Unit', 'code': 'SFGPUUA--------'},
+  {'type': 'Signal Unit', 'code': 'SFGPUUS--------'},
+  {'type': 'Medical Unit', 'code': 'SFGPUSM--------'},
+  {'type': 'Maintenance Unit', 'code': 'SFGPUSX--------'},
+];
+
+var worker = new Worker('milsym/SPWorker.js');
+
 // Install Paper.js
 paper.install(window);
 
 // Initialize...
 window.onload = function() {
+
+  showModal();
+
+  // Close the modal
+  var span = document.getElementsByClassName('close')[0];
+  span.onclick = function() {
+    modal.style.display = 'none';
+  }
 
   initInk();              // Initialize Ink array ()
   paper.setup('canvas');  // Setup Paper #canvas
@@ -58,10 +84,35 @@ window.onload = function() {
 
     // Check Google AI Quickdraw every 250 m/s
     if(thisTimestamp - lastTimestamp_check > 250){
-      checkQuickDraw();
+      //checkQuickDraw();
       lastTimestamp_check = thisTimestamp;
     }
   }
+}
+
+// Hide the modal stuff
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Unit font modifiers info
+function getFontInfo(name, size, style){
+    _ModifierFontName = name;
+    _ModifierFontSize = size;
+    if(style !== 'bold' || style !== 'normal')
+    {
+        _ModifierFontStyle = style;
+    }
+    else
+    {
+        _ModifierFontStyle = 'bold';
+    }
+    _ModifierFont = style + " " + size + "pt " + name;
+
+    var measurements = armyc2.c2sd.renderer.utilities.RendererUtilities.measureFont(_ModifierFont);
+    return {name: name, size:size, style:style, measurements:measurements};
 }
 
 // Initialize Ink Array
@@ -100,13 +151,13 @@ function getCanvasDimensions(){
 }
 
 // Check Quickdraw Google AI API
-function checkQuickDraw(){
+function postDrawing(){
 
   // Get Paper Canvas Weight/Height
   var c_dims = getCanvasDimensions();
 
-  // Set Base URL for Quickdraw Google AI API
-  var url = 'https://inputtools.google.com/request?ime=handwriting&app=quickdraw&dbg=1&cs=1&oe=UTF-8'
+  // Set Base URL to send drawings
+  var url = '/drawing'
 
   // Set HTTP Headers
   var headers = {
@@ -125,7 +176,7 @@ function checkQuickDraw(){
   xhr.onload = function() {
     if (xhr.status === 200) {
       res = xhr.responseText; // HTTP Response Text
-      parseResponse(res);     // Parse Response
+      //parseResponse(res);     // Parse Response
       idx_guess += 1;         // Iterate Guess Index
     }
     else if (xhr.status !== 200) {
@@ -135,12 +186,13 @@ function checkQuickDraw(){
 
   // Create New Data Payload for Quickdraw Google AI API
   var data = {
-    "input_type":0,
-    "requests":[
+    'input_type':0,
+    'requests':[
       {
-        "language":"quickdraw",
-        "writing_guide":{"width": c_dims.width, "height":c_dims.height},
-        "ink": [ink]
+        'type':iconsToDraw[index].type,
+        'code':iconsToDraw[index].code,
+        'writing_guide':{'width': c_dims.width, "height":c_dims.height},
+        'ink': [ink]
       }
     ]
   };
@@ -148,9 +200,15 @@ function checkQuickDraw(){
   // Convert Data Payload to JSON String
   var request_data = JSON.stringify(data);
 
+  alert(request_data);
+
   // Send HTTP Request w/ Data Payload
   xhr.send(request_data);
 
+  // Reset the canvas and move to the next thing to drawing
+  clearDrawing();
+  index++;
+  showModal();
 }
 
 // Parse Quickdraw Google AI API Response
@@ -161,6 +219,41 @@ function parseResponse(res){
   scores = JSON.parse(res_j[1][0][3].debug_info.match(/SCORESINKS: (.+) Combiner:/)[1]);
   // Add New Guess Scores to Score History
   updateScoresHistory();
+}
+
+function showModal(){
+
+  if (index === iconsToDraw.length) {
+    location.reload();
+  }
+
+  var modal = document.getElementById('modal');
+
+  // Show the modal with the unit icon
+  document.getElementById('instructions').innerHTML = 'Draw an ' + iconsToDraw[index].type;
+  var data = {};
+  data.id = "ID";
+  data.symbolID = iconsToDraw[index].code;
+  data.modifiers = modifiers;
+  data.fontInfo = fontInfo;
+
+  worker.onerror = function(error){
+    armyc2.c2sd.renderer.utilities.ErrorLogger.LogException("SPWorker", "postMessage", error);
+  };
+  worker.onmessage = function(e){
+    if(e.data.error){
+      document.getElementById("unit").innerHTML = e.data.result;
+      if(e.data.stack !== null){
+        document.getElementById("unit").innerHTML = ("<br/>at " + e.data.stack);
+      }
+    }else{
+      var svg = e.data.svg;
+      document.getElementById("unit").innerHTML = svg;
+    }
+  }
+  worker.postMessage(data);
+
+  modal.style.display = 'block';
 }
 
 // Update Score History
