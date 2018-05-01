@@ -1,28 +1,23 @@
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
-
-//import org.glassfish.jersey.logging.LoggingFeature;
-
-import java.io.IOException;
 
 import io.javalin.Javalin;
 
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GHContent;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Main {
   private static int PORT = 8080;
 
   public static void main(String[] args) {
     initEnvironment();
-    //Logger logger = Logger.getLogger(Main.class.getName());
-    //LoggingFeature feature = new LoggingFeature(logger, Level.INFO, null, null);
     Javalin app = Javalin.create()
       .port(PORT)
       .enableStaticFiles("/public")
-      .get("/test", (req, res) -> res.body("tests"))
-      .post("/drawing", (req, res) -> res.body("tests"));
+      .get("/ping", (req, res) -> res.body("pong"))
+      .post("/drawing", (req, res) -> {
+        appendToFile(req.body());
+        res.status(200);
+      });
   }
 
   private static void initEnvironment() {
@@ -32,14 +27,22 @@ public class Main {
     }
   }
 
-  private static String addDrawing() {
+  private static void appendToFile(String json) {
+    BufferedWriter bw = null;
     try {
-      GitHub github = GitHub.connect("USER", "TOKEN");
-      GHRepository ghRepo = github.getRepository("REPOSITORY");
-      GHContent content = ghRepo.getFileContent("/PATH/FILE.txt");
+      bw = new BufferedWriter(new FileWriter("/tmp/drawings.ndjson", true));
+    	bw.write(json);
+    	bw.newLine();
+    	bw.flush();
     } catch (IOException ex) {
-      ex.printStackTrace();
+    	ex.printStackTrace();
+    } finally {
+      if (bw != null) try {
+    	   bw.close();
+    	} catch (IOException e) {
+    	  // just ignore it
+      }
     }
-    return "";
   }
+
 }

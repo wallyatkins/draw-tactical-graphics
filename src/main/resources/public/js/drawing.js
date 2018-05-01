@@ -200,7 +200,7 @@ function postDrawing(){
   // Convert Data Payload to JSON String
   var request_data = JSON.stringify(data);
 
-  alert(request_data);
+  //alert(request_data);
 
   // Send HTTP Request w/ Data Payload
   xhr.send(request_data);
