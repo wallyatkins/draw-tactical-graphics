@@ -45,7 +45,7 @@ window.onload = function() {
     // New Paper Path and Settings
     path = new Path();
     path.strokeColor = 'black';
-    path.strokeWidth = 7;
+    path.strokeWidth = 10;
 
     // Get Time [ms] for each Guess (needed for accurate Google AI Guessing)
     var thisTimestamp = event.event.timeStamp;

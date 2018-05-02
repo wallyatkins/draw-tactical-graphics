@@ -1,8 +1,14 @@
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GHRepository;
@@ -10,11 +16,15 @@ import org.kohsuke.github.GHContent;
 
 public class WorkerProcess {
 
+  private static String tempFilePath = System.getenv("TEMP_FILE_PATH");
+  private static HashMap<String, String> drawings = new HashMap<String, String>();
+
+  // Start a worker to check for and add new drawings to the dataset
   public static void main(String[] args) {
 
     while(true) {
     	try {
-        Thread.sleep(10000);
+        Thread.sleep(60000); // sleep for a minute
       } catch(InterruptedException e) {
         // something went wrong
       }
@@ -23,20 +33,22 @@ public class WorkerProcess {
       // 1. Check the temp NDJSON file to see if there is content
       // 2. Sort the NDJSON entries into different piles
       // 3. Clear the temp NDJSON file for new entries
-      // 4. Push updates to the proper NDJSON files to GitHub
+      // 4. Push updates to the proper NDJSON files on GitHub
+      // 5. Clear the piles
 
-      try {
-        GitHub github = GitHub.connectUsingPassword(System.getenv("GITHUB_USERNAME"), System.getenv("GITHUB_PASSWORD"));
-        GHRepository ghRepo = github.getRepository("wallyatkins/draw-tactical-graphics");
-        GHContent content = ghRepo.getFileContent("Procfile");
-        System.out.println(getStringFromInputStream(content.read()));
-      } catch (IOException ex) {
-        ex.printStackTrace();
+
+      Iterator it = drawings.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry pair = (Map.Entry)it.next();
+        System.out.println(pair.getKey() + " = " + pair.getValue());
+        it.remove();
       }
+
     }
   }
 
-  private static String getStringFromInputStream(InputStream is) {
+  // Returns a string builder from an input stream
+  private static StringBuilder getStringFromInputStream(InputStream is, String data) {
 
 		BufferedReader br = null;
 		StringBuilder sb = new StringBuilder();
@@ -58,7 +70,41 @@ public class WorkerProcess {
 				}
 			}
 		}
-		return sb.toString();
+
+    sb.append(data);
+		return sb;
 	}
+
+  // Checks if a file is empty
+  private static boolean fileIsEmpty(String file) {
+    BufferedReader br = new BufferedReader(new FileReader(file));
+    if (br.readLine() == null) {
+      return true;
+    }
+    return false;
+  }
+
+  // Truncates the given file's contents
+  private static void clearFile(String file) {
+    new PrintWriter(file).close();
+  }
+
+  // Clear out the drawings HashMap
+  private static void clearDrawings() {
+    drawings.clear();
+  }
+
+  // Append drawings to the NDJSON files on GitHub
+  private static void appendDataSet(String name, String ndjson) {
+
+    try {
+      GitHub github = GitHub.connectUsingPassword(System.getenv("GITHUB_USERNAME"), System.getenv("GITHUB_PASSWORD"));
+      GHRepository ghRepo = github.getRepository(System.getenv("GITHUB_REPOSITORY"));
+      GHContent content = ghRepo.getFileContent("raw/" + name + ".ndjson");
+      //System.out.println(getStringFromInputStream(content.read()));
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
+  }
 
 }
