@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.wallyatkins</groupId>
@@ -21,44 +20,41 @@
 			<artifactId>javalin</artifactId>
 			<version>0.2.0</version>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.21</version>
-		</dependency>
 
 		<dependency>
-    	<groupId>org.kohsuke</groupId>
-    	<artifactId>github-api</artifactId>
-    	<version>1.92</version>
+			<groupId>org.kohsuke</groupId>
+			<artifactId>github-api</artifactId>
+			<version>1.92</version>
 		</dependency>
 
 	</dependencies>
 
 	<build>
 		<plugins>
+
 			<plugin>
-        <groupId>org.codehaus.mojo</groupId>
-          <artifactId>appassembler-maven-plugin</artifactId>
-          <version>1.1.1</version>
-          <configuration>
-            <assembleDirectory>target</assembleDirectory>
-            <programs>
-                <program>
-                    <mainClass>WorkerProcess</mainClass>
-                    <name>worker</name>
-                </program>
-            </programs>
-          </configuration>
-          <executions>
-              <execution>
-                  <phase>package</phase>
-									<goals>
-										<goal>assemble</goal>
-									</goals>
-              </execution>
-          </executions>
-      </plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<version>1.1.1</version>
+				<configuration>
+					<assembleDirectory>target</assembleDirectory>
+					<programs>
+						<program>
+							<mainClass>WorkerProcess</mainClass>
+							<name>worker</name>
+						</program>
+					</programs>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>assemble</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -90,18 +86,7 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>com.heroku.sdk</groupId>
-				<artifactId>heroku-maven-plugin</artifactId>
-				<version>1.1.3</version>
-				<configuration>
-					<jdkVersion>1.8</jdkVersion>
-					<appName>draw-tactical-graphics</appName>
-					<processTypes>
-						<web>java -jar ./target/draw-tactical-graphics-1.0-jar-with-dependencies.jar</web>
-					</processTypes>
-				</configuration>
-			</plugin>
+			
 		</plugins>
 	</build>
 </project>
