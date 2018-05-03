@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +9,11 @@ import java.io.PrintWriter;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.json.JSONObject;
 
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GHRepository;
@@ -36,6 +41,13 @@ public class WorkerProcess {
       // 4. Push updates to the proper NDJSON files on GitHub
       // 5. Clear the piles
 
+      if (!fileIsEmpty(tempFilePath)) {
+        try {
+          List<JSONObject> ndjson = parseNDJSON(new FileInputStream(tempFilePath));
+        } catch (IOException ex) {
+          ex.printStackTrace();
+        }
+      }
 
       Iterator it = drawings.entrySet().iterator();
       while (it.hasNext()) {
@@ -77,16 +89,33 @@ public class WorkerProcess {
 
   // Checks if a file is empty
   private static boolean fileIsEmpty(String file) {
-    BufferedReader br = new BufferedReader(new FileReader(file));
-    if (br.readLine() == null) {
-      return true;
+    BufferedReader br = null;
+    try {
+      br = new BufferedReader(new FileReader(file));
+      if (br.readLine() == null) {
+        return true;
+      }
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    } finally {
+		  if (br != null) {
+			  try {
+				  br.close();
+			  } catch (IOException e) {
+			    e.printStackTrace();
+        }
+      }
     }
     return false;
   }
 
   // Truncates the given file's contents
   private static void clearFile(String file) {
-    new PrintWriter(file).close();
+    try {
+      new PrintWriter(file).close();
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
   }
 
   // Clear out the drawings HashMap
@@ -106,5 +135,15 @@ public class WorkerProcess {
       ex.printStackTrace();
     }
   }
+
+  // Parse the contents of an NDJSON file
+  private static List<JSONObject> parseNDJSON(InputStream is) {
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		return br
+				.lines()
+				.filter(str -> !str.isEmpty())
+				.map(JSONObject::new)
+				.collect(Collectors.toList());
+	}
 
 }

@@ -27,6 +27,12 @@
 			<version>1.92</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>RELEASE</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -86,7 +92,7 @@
 					</archive>
 				</configuration>
 			</plugin>
-			
+
 		</plugins>
 	</build>
 </project>
