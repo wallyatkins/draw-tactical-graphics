@@ -21,11 +21,17 @@ import org.kohsuke.github.GHContent;
 
 public class WorkerProcess {
 
-  private static String tempFilePath = System.getenv("TEMP_FILE_PATH");
+  private static String tempFilePath;
   private static HashMap<String, String> drawings = new HashMap<String, String>();
 
   // Start a worker to check for and add new drawings to the dataset
   public static void main(String[] args) {
+
+    if (System.getenv("TEMP_FILE_PATH") != null) {
+      tempFilePath = System.getenv("TEMP_FILE_PATH");
+    } else {
+      tempFilePath = "/tmp/drawings.ndjson";
+    }
 
     while(true) {
     	try {
