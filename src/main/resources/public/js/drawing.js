@@ -185,7 +185,7 @@ function postDrawing(){
   };
 
   // Create New Data Payload for Quickdraw Google AI API
-  var data = {
+  /* var data = {
     'input_type':0,
     'requests':[
       {
@@ -195,6 +195,14 @@ function postDrawing(){
         'ink': [ink]
       }
     ]
+  }; */
+
+  var data = {'writing_guide':{'width': c_dims.width, "height":c_dims.height},
+    'type':iconsToDraw[index].type,
+    'code':iconsToDraw[index].code,
+    'writing_guide':{'width': c_dims.width, "height":c_dims.height},
+    // 'png':document.getElementById('canvas').toDataURL("image/png")
+    'ink':paper.project.exportJSON()
   };
 
   // Convert Data Payload to JSON String

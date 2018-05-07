@@ -1,4 +1,3 @@
-
 import io.javalin.Javalin;
 
 import java.io.BufferedWriter;
