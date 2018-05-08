@@ -20,7 +20,10 @@ import org.json.JSONObject;
 
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHRef;
 import org.kohsuke.github.GHContent;
+import org.kohsuke.github.GHTreeBuilder;
+import org.kohsuke.github.GHCommitBuilder;
 
 public class WorkerProcess {
 
@@ -53,7 +56,7 @@ public class WorkerProcess {
           // 2. Sort the NDJSON entries into different piles
           List<JSONObject> ndjson = parseNDJSON(new FileInputStream(tempFilePath));
           for (JSONObject json : ndjson) {
-            drawings.put(json.getString("type"), json.toString() + "\\n"); // append a new line character
+            drawings.put(json.getString("type"), json.toString() + System.lineSeparator()); // append a new line character
           }
           // 3. Clear the temp NDJSON file for new entries
           clearFile(tempFilePath);
@@ -140,15 +143,59 @@ public class WorkerProcess {
 
   // Append drawings to the NDJSON files on GitHub
   private static void appendDataSet(String name, String ndjson) {
+    String fileName = "raw/" + name + ".ndjson";
 
     try {
+      // Connect to the GitHub repository master branch
       GitHub github = GitHub.connectUsingPassword(System.getenv("GITHUB_USERNAME"), System.getenv("GITHUB_PASSWORD"));
       GHRepository ghRepo = github.getRepository(System.getenv("GITHUB_REPOSITORY"));
-      GHContent content = ghRepo.getFileContent("raw/" + name + ".ndjson");
-      String data = getStringFromInputStream(content.read());
-      data += ndjson;
-      content.update(data, "adding more drawings - " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+      GHRef masterRef = ghRepo.getRef("heads/master");
+
+      // Retrieve the SHA of the latest commit on the master branch
+      String masterTreeSha = ghRepo
+              .getTreeRecursive("master", 1)
+              .getSha();
+      // System.out.println("Master branch SHA: " + masterTreeSha);
+
+      GHContent content = null;
+      List<GHContent> contents = ghRepo.getDirectoryContent("/raw");
+      for (GHContent c:contents) {
+        String contentName = c.getName();
+        System.out.println("name === " + c.getName() + "; path === " + c.getPath());
+        if (c.getName().contains(name)) {
+          content = c;
+        }
+      }
+
+      // Get the drawing file content, append and commit
+      //System.out.println("Attempting to get file content: " + content.getPath());
+      //GHContent content = ghRepo.getFileContent(fileName);
+      //System.out.println("Attempting to get read content: " + content.getName());
+      String text = getStringFromInputStream(content.read());
+      //System.out.println("File content before: " + text);
+      text += ndjson;
+      //System.out.println("File content after: " + text);
+
+      String treeSha = ghRepo.createTree()
+              .baseTree(masterTreeSha)
+              .textEntry(content.getPath(), text, false)
+              .create()
+              .getSha();
+      //System.out.println("Updated tree SHA: " + treeSha);
+
+      // Make a git commit
+      String commitSha = ghRepo.createCommit()
+              .message("adding more drawings - " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+              .tree(treeSha)
+              .parent(masterRef.getObject().getSha())
+              .create()
+              .getSHA1();
+      //System.out.println("Commit SHA: " + commitSha);
+
+      // Update the master reference to refer to the new commit
+      masterRef.updateTo(commitSha);
     } catch (IOException ex) {
+      System.out.println("An error occurred.");
       ex.printStackTrace();
     }
   }
