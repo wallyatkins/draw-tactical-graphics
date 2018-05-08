@@ -157,7 +157,7 @@ function postDrawing(){
   var c_dims = getCanvasDimensions();
 
   // Set Base URL to send drawings
-  var url = '/drawing'
+  var url = '/drawing?name='
 
   // Set HTTP Headers
   var headers = {
@@ -167,7 +167,7 @@ function postDrawing(){
 
   // Init HTTP Request
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', url);
+  xhr.open('POST', url + iconsToDraw[index].type);
   Object.keys(headers).forEach(function(key,index) {
       xhr.setRequestHeader(key, headers[key]);
   });
