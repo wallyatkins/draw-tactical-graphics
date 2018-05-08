@@ -30,19 +30,22 @@ public class Main {
 
   // Append the drawing JSON to the temp NDJSON file
   private static void appendToFile(String json) {
+    System.getenv("TEMP_FILE_PATH");
+    System.out.println(json);
     BufferedWriter bw = null;
     try {
       bw = new BufferedWriter(new FileWriter(System.getenv("TEMP_FILE_PATH"), true));
     	bw.write(json);
     	bw.newLine();
     	bw.flush();
+      System.out.println("Wrote to " + System.getenv("TEMP_FILE_PATH") + ": " + json);
     } catch (IOException ex) {
     	ex.printStackTrace();
     } finally {
       if (bw != null) try {
     	   bw.close();
     	} catch (IOException e) {
-    	  // just ignore it
+    	  e.printStackTrace();
       }
     }
   }

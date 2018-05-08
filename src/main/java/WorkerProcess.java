@@ -47,9 +47,6 @@ public class WorkerProcess {
       }
       System.out.println("Worker process woke up");
 
-      // 4. Push updates to the proper NDJSON files on GitHub
-
-
       // 1. Check the temp NDJSON file to see if there is content
       if (!fileIsEmpty(tempFilePath)) {
         try {
@@ -160,8 +157,6 @@ public class WorkerProcess {
       GHContent content = null;
       List<GHContent> contents = ghRepo.getDirectoryContent("/raw");
       for (GHContent c:contents) {
-        String contentName = c.getName();
-        System.out.println("name === " + c.getName() + "; path === " + c.getPath());
         if (c.getName().contains(name)) {
           content = c;
         }
