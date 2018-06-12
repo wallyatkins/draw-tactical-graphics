@@ -1,29 +1,24 @@
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
-
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GHRef;
 import org.kohsuke.github.GHContent;
-import org.kohsuke.github.GHTreeBuilder;
-import org.kohsuke.github.GHCommitBuilder;
+import org.kohsuke.github.GHRef;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GitHub;
 
 public class WorkerProcess {
 
@@ -58,9 +53,9 @@ public class WorkerProcess {
           // 3. Clear the temp NDJSON file for new entries
           clearFile(tempFilePath);
           // 4. Push updates to the proper NDJSON files on GitHub
-          Iterator it = drawings.entrySet().iterator();
+          Iterator<Entry<String, String>> it = drawings.entrySet().iterator();
           while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry) it.next();
+            Entry<String, String> pair = it.next();
             appendDataSet((String) pair.getKey(), (String) pair.getValue());
             it.remove();
           }
@@ -140,7 +135,6 @@ public class WorkerProcess {
 
   // Append drawings to the NDJSON files on GitHub
   private static void appendDataSet(String name, String ndjson) {
-    String fileName = "raw/" + name + ".ndjson";
 
     try {
       // Connect to the GitHub repository master branch
