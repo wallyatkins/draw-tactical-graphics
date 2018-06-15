@@ -197,12 +197,13 @@ function postDrawing(){
     ]
   }; */
 
-  var data = {'writing_guide':{'width': c_dims.width, "height":c_dims.height},
-    'type':iconsToDraw[index].type,
-    'code':iconsToDraw[index].code,
-    'writing_guide':{'width': c_dims.width, "height":c_dims.height},
+  var data = {
+    'unit_type':iconsToDraw[index].type,
+    'mil_code':iconsToDraw[index].code,
+    'canvas_size':{'width': c_dims.width, "height":c_dims.height},
     // 'png':document.getElementById('canvas').toDataURL("image/png")
-    'ink':paper.project.exportJSON()
+    // 'ink':paper.project.exportJSON()
+    'svg':paper.project.exportSVG({'bounds':'content','asString':true})
   };
 
   // Convert Data Payload to JSON String
